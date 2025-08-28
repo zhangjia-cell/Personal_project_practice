@@ -37,7 +37,7 @@ def download_data(task_name):
                 os.makedirs(data_folder)
                 # 下载数据集
                 os.system(f"wget -P {data_folder} {task_url}")
-
+                os.system(f"unzip {os.path.join(data_folder, task_name+'.zip')} -d {data_folder}")
         # monet2photo 数据集      
         case "monet2photo":
             pass
@@ -96,6 +96,7 @@ def download_data(task_name):
 def main():
     # 解析参数
     args = parse_args()
+    print(args.task_name)
     # 下载数据
     download_data(args.task_name)
 
