@@ -3,20 +3,24 @@ import torchvision.transforms as transforms
 import argparse
 from transformers import Trainer, TrainingArguments, HfArgumentParser
 from dataclasses import dataclass
-
-
+import zipfile
+import requests
 
 
 
 # --------------------------------------------------------------------------------------------------------------------- #
 # 1.参数设置------*[可以增补]*
 # --------------------------------------------------------------------------------------------------------------------- #
+# 可调参数
 @dataclass
 class OurArguments(TrainingArguments):
     # 任务名称
     task_name : str = "apple2orange"
 
+# 全局参数
+DOWNLOAD_DIR = "C_Generative/GAN1_Image_Style_Transfer/Data"
 
+# 传参设置
 def parse_args():
 	parser = HfArgumentParser(OurArguments)
 	args = parser.parse_args_into_dataclasses()[0]
@@ -25,19 +29,36 @@ def parse_args():
 # --------------------------------------------------------------------------------------------------------------------- #
 # 2.数据下载------*[可以增补]*
 # --------------------------------------------------------------------------------------------------------------------- #
+def download_and_extract_zip(url, save_path=DOWNLOAD_DIR, task_name):
+    data_folder = os.path.join(save_path, task_name)
+    if not os.path.exists(data_folder):
+        os.makedirs(data_folder)
+    # 发送下载请求
+    response = requests.get(url, stream=True, timeout=100)
+    response.raise_for_status()  # 检查请求是否成功
+
+    zip_path = os.path.join(data_folder, f"{task_name}.zip")
+    with open(zip_path, "wb") as f:
+        f.write(response.content)
+
+    # 解压缩
+    with zipfile.ZipFile(zip_path, "r") as zip_ref:
+        zip_ref.extractall(data_folder)
+
+
+
+
+
+
 def download_data(task_name):
     task_url = f"https://people.eecs.berkeley.edu/~taesung_park/CycleGAN/datasets/{task_name}.zip"
-    data_folder = "C_Generative/GAN1_Image_Style_Transfer/Data"
-    
+
     match task_name:
         # apple2orange 数据集
         case "apple2orange":
-            data_folder = os.path.join(data_folder, task_name)
-            if not os.path.exists(data_folder):
-                os.makedirs(data_folder)
-                # 下载数据集
-                os.system(f"wget -P {data_folder} {task_url}")
-                os.system(f"unzip {os.path.join(data_folder, task_name+'.zip')} -d {data_folder}")
+            pass
+            # 下载数据集
+                
         # monet2photo 数据集      
         case "monet2photo":
             pass
