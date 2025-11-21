@@ -49,16 +49,33 @@ conda install -c conda-forge numpy scikit-learn transformers --force-reinstall
 
 ## 4. 调参设置
 
-### 4.1. 运行脚本
+### 4.1 代码传递
 
 ```python
-# 训练脚本
-python trainrun.py --task_name apple2orange --lr 0.0002 --batch_size 1 --epochs 1000 --size 256 --decay_epoch 60
+# 从本地传递到服务器
+
+scp -P 12400 "F:\C_Code_AI_Program\C_Generative\GAN1_Image_Style_Transfer.zip" zhangjia@222.27.87.23:/home/zhangjia/Personal_Programs/GAN1_Image_Style_Transfer
+# 从本地git到Github，在从Github上clone到服务器
+
+
 ```
 
-### 4.2 参数设置
+
+
+### 4.2. 运行脚本
 
 ```python
+# 运行代码(Windows本地测试)
+python -u "f:\C_Code_AI_Program\C_Generative\GAN1_Image_Style_Transfer\trainrun.py" --gpu_ids 0 --task_name apple2orange --lr 0.0002 --batch_size 1 --epochs 1000 --size 256 --decay_epoch 60
+# 运行代码(Linux服务运行)
+GPU_IDS=0 TASK_NAME=apple2orange LR=0.0002 BATCH_SIZE=1 EPOCHS=1000 SIZE=256 DECAY_EPOCH=60 bash run.sh
+```
+
+### 4.3 参数设置
+
+```python
+# gpu卡号
+gpu_ids:-"0"
 # 训练任务名称
 task_name:-"apple2orange"
 # 学习率

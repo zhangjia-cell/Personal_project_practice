@@ -10,7 +10,7 @@ import torchvision.transforms as transforms
 # --------------------------------------------------------------------------------------------------------------------- #
 # 1.项目文件设置------*[需要修改]*
 # --------------------------------------------------------------------------------------------------------------------- #
-Program_folder = "C_Generative\GAN1_Image_Style_Transfer"
+Program_folder = "C_Generative/GAN1_Image_Style_Transfer"
 Data_folder = "Data"
 Data_folder = os.path.join(Program_folder, Data_folder)
 

@@ -39,13 +39,11 @@ class OurArguments:
     size: int = 256
     # 多少个epoch后开始衰减
     decay_epoch: int = 60
-    
-
-# 全局参数
-# --路径设置
-DOWNLOAD_DIR = "C_Generative/GAN1_Image_Style_Transfer/Data"
-LOGS_DIR = "C_Generative/GAN1_Image_Style_Transfer/Logs"
-MODELS_DIR = "C_Generative/GAN1_Image_Style_Transfer/Models"
+    # 下载地址
+    DOWNLOAD_DIR: str = "C_Generative/GAN1_Image_Style_Transfer/Data"
+    LOGS_DIR: str = "C_Generative/GAN1_Image_Style_Transfer"
+    MODELS_DIR: str = "C_Generative/GAN1_Image_Style_Transfer/Models"
+    Linux_Dir: str = "/home/zhangjia/Personal_Programs"
 
 # --------------------------------------------------------------------------------------------------------------------- #
 def gpuchose(args):
@@ -113,24 +111,27 @@ def download_and_extract_zip(url: str, task_name: str, save_path: str, logger: l
         logger.exception("解压失败：%s", e)
         raise
 
-def download_data(task_name, logger=None):
+def download_data(args, task_name, save_path, logger=None):
     task_url = f"https://efrosgans.eecs.berkeley.edu/cyclegan/datasets/{task_name}.zip"
 
     match task_name:
         # 数据集
         case "apple2orange" | "monet2photo" | "cezanne2photo" | "ukiyoe2photo" | "vangogh2photo" | "ae_photos":
             # 下载数据集
-            download_and_extract_zip(task_url, task_name, save_path=DOWNLOAD_DIR, logger=logger)
+            download_and_extract_zip(task_url, task_name, save_path=save_path, logger=logger)
         case _:
             if logger:
                 logger.error(f"未知任务名称：{task_name}")
 
 # --------------------------------------------------------------------------------------------------------------------- #
-# 3.日志设置------*[]*
+# 3.日志设置------*[需更改]*
 # --------------------------------------------------------------------------------------------------------------------- #
-def setup_logging(log_dir="logs"):
+def setup_logging(args, log_dir="Logs"):
     # 创建日志文件夹
-    log_dir = os.path.join(LOGS_DIR, log_dir)
+    # -------------------------------- #
+    args.LOGS_DIR = os.path.join(args.Linux_Dir, args.LOGS_DIR) # linux版本：
+    # -------------------------------- #
+    log_dir = os.path.join(args.LOGS_DIR, log_dir)
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
 
@@ -208,11 +209,22 @@ def train_model():
     # --------------------------------------------------------- #
 
     # 创建日志对象
-    logger = setup_logging()
+    logger = setup_logging(args)
     # ------------------------------------------------------- #
 
+    # 加载数据集
+    # ------------------------------------------------------- #
+    # Linux版本：
+    # ------------------------------------------------------- #
+    args.DOWNLOAD_DIR = os.path.join(args.Linux_Dir, "C_Generative/GAN1_Image_Style_Transfer/Data")
+    args.MODELS_DIR = os.path.join(args.Linux_Dir, args.MODELS_DIR)
+    # ------------------------------------------------------- #
+    if not os.path.exists(args.MODELS_DIR): 
+        os.makedirs(args.MODELS_DIR, exist_ok=True)
+        logger.info(f"已创建文件夹: {args.MODELS_DIR}")
+
     # 下载数据
-    download_data(args.task_name, logger)
+    download_data(args, args.task_name, args.DOWNLOAD_DIR, logger=logger)
     logger.info("-" * 150)
     logger.info(f"开始训练模型 ...")
     logger.info("-" * 150)
@@ -239,9 +251,8 @@ def train_model():
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
     ])
 
-    # 加载数据集
     dataloader = DataLoader(
-        ImageDataset(os.path.join(DOWNLOAD_DIR, args.task_name), 
+        ImageDataset(os.path.join(args.DOWNLOAD_DIR, args.task_name), 
                      transform=transforms_, model="train"), 
                      batch_size=args.batch_size, shuffle=True, num_workers=8)
     
@@ -348,17 +359,17 @@ def train_model():
         lr_scheduler_DB.step()
 
         # 每个epoch保存一次模型
-        torch.save(netG_A2B.state_dict(), os.path.join(MODELS_DIR, f"netG_A2B_epoch_{epoch+1}.pth"))
-        torch.save(netG_B2A.state_dict(), os.path.join(MODELS_DIR, f"netG_B2A_epoch_{epoch+1}.pth"))
-        torch.save(netD_A.state_dict(), os.path.join(MODELS_DIR, f"netD_A_epoch_{epoch+1}.pth"))
-        torch.save(netD_B.state_dict(), os.path.join(MODELS_DIR, f"netD_B_epoch_{epoch+1}.pth"))
-        logger.info(f"已保存模型权重到 {MODELS_DIR}")
+        torch.save(netG_A2B.state_dict(), os.path.join(args.MODELS_DIR, f"netG_A2B_epoch_{epoch+1}.pth"))
+        torch.save(netG_B2A.state_dict(), os.path.join(args.MODELS_DIR, f"netG_B2A_epoch_{epoch+1}.pth"))
+        torch.save(netD_A.state_dict(), os.path.join(args.MODELS_DIR, f"netD_A_epoch_{epoch+1}.pth"))
+        torch.save(netD_B.state_dict(), os.path.join(args.MODELS_DIR, f"netD_B_epoch_{epoch+1}.pth"))
+        logger.info(f"已保存模型权重到 {args.MODELS_DIR}")
     # 最后保存一次模型
-    torch.save(netG_A2B.state_dict(), os.path.join(MODELS_DIR, f"netG_A2B_final.pth"))
-    torch.save(netG_B2A.state_dict(), os.path.join(MODELS_DIR, f"netG_B2A_final.pth"))
-    torch.save(netD_A.state_dict(), os.path.join(MODELS_DIR, f"netD_A_final.pth"))
-    torch.save(netD_B.state_dict(), os.path.join(MODELS_DIR, f"netD_B_final.pth"))
-    logger.info(f"已保存最终模型权重到 {MODELS_DIR}")
+    torch.save(netG_A2B.state_dict(), os.path.join(args.MODELS_DIR, f"netG_A2B_final.pth"))
+    torch.save(netG_B2A.state_dict(), os.path.join(args.MODELS_DIR, f"netG_B2A_final.pth"))
+    torch.save(netD_A.state_dict(), os.path.join(args.MODELS_DIR, f"netD_A_final.pth"))
+    torch.save(netD_B.state_dict(), os.path.join(args.MODELS_DIR, f"netD_B_final.pth"))
+    logger.info(f"已保存最终模型权重到 {args.MODELS_DIR}")
 
     logger.info("-" * 150)
     logger.info(f"训练完成。")
